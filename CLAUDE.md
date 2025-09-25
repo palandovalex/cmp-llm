@@ -12,13 +12,15 @@ Backend: OpenAI API (configurable model).
 
 Functionality:
 
-Intelligently gather code context around the cursor.
+Intelligently gather code context around the cursor using vim movements.
 
 Send the context to the OpenAI API in an asynchronous, non-blocking way.
 
 Parse the API response.
 
 Provide the generated text as a completion item to nvim-cmp.
+
+Provide visual processing indicators during LLM requests.
 
 2. Proposed File Structure
 A clean, modular structure is key. This layout separates concerns, making the code easier to maintain and extend.
@@ -30,6 +32,6 @@ A clean, modular structure is key. This layout separates concerns, making the co
 │       ├── config.lua    # Default configuration values
 │       ├── api.lua       # Handles all communication with the OpenAI API
 │       ├── prompt.lua    # Logic for gathering context and building the prompt
-│       └── source.lua    # The core nvim-cmp source implementation
-└── plugin/
-    └── cmp-llm.lua     # Registers the source with nvim-cmp on startup
+│       ├── source.lua    # The core nvim-cmp source implementation
+│       ├── debug.lua     # Debug logging and utilities
+│       └── indicators.lua # Visual processing indicators
