@@ -1,5 +1,6 @@
 local config = require("cmp-llm.config")
 local debug = require("cmp-llm.debug")
+local indicators = require("cmp-llm.indicators")
 
 local M = {}
 
@@ -8,6 +9,9 @@ local M = {}
 ---@return nil
 function M.setup(opts)
   config.setup(opts)
+
+  -- Setup visual indicators
+  indicators.setup()
 
   local cmp = require("cmp")
   if not cmp then
@@ -20,6 +24,12 @@ function M.setup(opts)
 
   -- Setup debug commands
   debug.setup_commands()
+
+  -- Add indicator cleanup command for debugging
+  vim.api.nvim_create_user_command('CmpLlmClearIndicators', function()
+    indicators.cleanup_all()
+    vim.notify("cmp-llm: All processing indicators cleared", vim.log.levels.INFO)
+  end, { desc = "Clear all cmp-llm processing indicators" })
 
   -- Add test command
   vim.api.nvim_create_user_command('CmpLlmTest', function()

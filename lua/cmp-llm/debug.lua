@@ -9,7 +9,7 @@ local function get_timestamp()
 end
 
 --- Log a message with category, level, and optional data
----@param category string Log category (api_request, api_response, prompt, completion, lsp, general)
+---@param category string Log category (api_request, api_response, prompt, completion, general)
 ---@param level string Log level (debug, info, warn, error)
 ---@param message string The log message
 ---@param data? any Optional data to include in the log (table will be pretty-printed)
@@ -30,8 +30,6 @@ function M.log(category, level, message, data)
   elseif category == "prompt" and cfg.debug.log_prompts then
     category_enabled = true
   elseif category == "completion" and cfg.debug.log_completions then
-    category_enabled = true
-  elseif category == "lsp" and cfg.debug.log_lsp_requests then
     category_enabled = true
   elseif category == "general" then
     category_enabled = true
@@ -164,14 +162,6 @@ end
 ---@return nil
 function M.log_completion(phase, details)
   M.log("completion", "info", "Completion " .. phase, details)
-end
-
---- Log LSP operation details
----@param action string The LSP action (e.g., "request", "response", "timeout")
----@param details any Details about the LSP operation
----@return nil
-function M.log_lsp(action, details)
-  M.log("lsp", "info", "LSP " .. action, details)
 end
 
 -- Commands for users to control debugging

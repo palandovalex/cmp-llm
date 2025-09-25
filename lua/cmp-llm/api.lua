@@ -4,27 +4,6 @@ local debug = require("cmp-llm.debug")
 
 local M = {}
 
---- Internal logging function with level filtering
----@param level string Log level (debug, info, warn, error)
----@param message string The message to log
----@return nil
-local function log(level, message)
-  local log_levels = {
-    debug = vim.log.levels.DEBUG,
-    info = vim.log.levels.INFO,
-    warn = vim.log.levels.WARN,
-    error = vim.log.levels.ERROR
-  }
-
-  local cfg = config.get()
-  local current_level = log_levels[cfg.log_level] or vim.log.levels.WARN
-  local msg_level = log_levels[level] or vim.log.levels.INFO
-
-  if msg_level >= current_level then
-    vim.notify("cmp-llm: " .. message, msg_level)
-  end
-end
-
 --- Generate code completions using OpenAI API
 ---@param prompt string The complete prompt text to send to the LLM
 ---@param callback function Callback function called with (completions: string[]?, error_msg: string?)
@@ -49,7 +28,7 @@ function M.complete(prompt, callback)
     messages = {
       {
         role = "system",
-        content = "You are a code completion assistant. Complete the given code context with the most appropriate continuation. Respond only with the completion code, no explanations or markdown formatting. Provide diverse completion options when multiple candidates are requested."
+        content = "You are a code completion assistant. Complete the given code context with the most appropriate continuation. Respond only with the completion code, no explanations, no markdown formatting, and no markdown code fences. Provide diverse completion options when multiple candidates are requested."
       },
       {
         role = "user",
@@ -77,7 +56,6 @@ function M.complete(prompt, callback)
     prompt_length = #prompt
   })
 
-  log("debug", "Making API request to " .. cfg.base_url)
 
   curl.post(cfg.base_url, {
     headers = headers,
@@ -94,7 +72,6 @@ function M.complete(prompt, callback)
             error_msg = error_msg .. " - " .. (parsed.error.message or "Unknown error")
           end
         end
-        log("error", error_msg)
         debug.log_completion("failed", {
           status = response.status,
           error = error_msg,
@@ -107,7 +84,6 @@ function M.complete(prompt, callback)
       local ok, parsed = pcall(vim.json.decode, response.body)
       if not ok then
         local error_msg = "Failed to parse API response"
-        log("error", error_msg)
         debug.log_completion("failed", {
           error = error_msg,
           body = response.body
@@ -118,28 +94,26 @@ function M.complete(prompt, callback)
 
       debug.log_completion("parsed", {
         choices_count = parsed.choices and #parsed.choices or 0,
-        usage = parsed.usage
+        usage = parsed.usage,
+        parsed = vim.inspect(parsed.choices),
       })
 
       if not parsed.choices or #parsed.choices == 0 then
-        local error_msg = "No completions returned from API"
-        log("warn", error_msg)
         debug.log_completion("empty", parsed)
         callback({}, nil)
         return
       end
 
       local completions = {}
-      for i, choice in ipairs(parsed.choices) do
+      for _, choice in ipairs(parsed.choices) do
         if choice.message and choice.message.content then
-          local content = choice.message.content:gsub("^%s*", ""):gsub("%s*$", "")
+          local content = choice.message.content
           if content ~= "" then
             table.insert(completions, content)
           end
         end
       end
 
-      log("debug", "Received " .. #completions .. " completions")
       debug.log_completion("success", {
         completions_count = #completions,
         completions = completions,
