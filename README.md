@@ -23,7 +23,7 @@ A Neovim completion source for [nvim-cmp](https://github.com/hrsh7th/nvim-cmp) t
 
 ```lua
 {
-  "your-username/cmp-llm",
+  "zzhirong/cmp-llm",
   dependencies = {
     "hrsh7th/nvim-cmp",
     "nvim-lua/plenary.nvim",
